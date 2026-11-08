@@ -45,6 +45,14 @@ The star on a selected station saves it as a favorite. Favorites stay in the set
 after the station is removed from the departures, and one tap selects them again.
 Tapping the star again removes the favorite.
 
+## Walking time and leave time
+
+In the settings, each selected station can get a walking time in half-minute
+steps. Its departures then show when you have to leave, with a coloured stripe and
+label: green with 3 or more minutes to spare, yellow below 3, orange to leave now,
+and red when the departure can no longer be reached. Stations without a walking
+time look as before.
+
 ## Refresh rules
 
 - Automatic refresh on the first full minute at least 2 minutes after the last

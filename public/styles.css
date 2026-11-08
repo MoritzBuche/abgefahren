@@ -14,6 +14,10 @@
   --pin: #c9281e;
   --star: #b7791f;
   --flash: #cdeedd;
+  --reach-ok: #1f8a4c;
+  --reach-soon: #e8b400;
+  --reach-now: #f07d1a;
+  --reach-late: #d33a2c;
   --shadow: 0 8px 24px rgb(26 35 41 / 0.14);
 }
 
@@ -467,6 +471,46 @@ ul, ol { list-style: none; }
 .is-cancelled .departure-relative { color: var(--warn); font-size: 0.9rem; }
 
 .more-rows { padding: 12px; color: var(--muted); font-size: 0.85rem; text-align: center; }
+
+/* ---------- Leave time ---------- */
+
+.reach-ok { box-shadow: inset 4px 0 0 var(--reach-ok); }
+.reach-soon { box-shadow: inset 4px 0 0 var(--reach-soon); }
+.reach-now { box-shadow: inset 4px 0 0 var(--reach-now); }
+.reach-late { box-shadow: inset 4px 0 0 var(--reach-late); }
+.reach-late :is(.departure-line, .departure-direction, .departure-when) { opacity: 0.5; }
+
+.leave {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.leave-ok { background: var(--reach-ok); color: #fff; }
+.leave-soon { background: var(--reach-soon); color: #2b2100; }
+.leave-now { background: var(--reach-now); color: #2b1400; }
+.leave-late { background: var(--reach-late); color: #fff; }
+
+.walk-list { display: flex; flex-direction: column; gap: 4px; }
+.walk-list:empty { display: none; }
+.walk-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.walk-name { min-width: 0; overflow: hidden; font-size: 0.9rem; white-space: nowrap; text-overflow: ellipsis; }
+.walk-controls { display: flex; flex-shrink: 0; align-items: center; gap: 4px; }
+.walk-step {
+  width: 36px;
+  height: 36px;
+  background: var(--surface-2);
+  border: 0;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.walk-step:disabled { opacity: 0.4; }
+.walk-value { min-width: 64px; font-weight: 650; text-align: center; font-variant-numeric: tabular-nums; }
 
 .empty {
   padding: 36px 20px;

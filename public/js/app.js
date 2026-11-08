@@ -14,6 +14,10 @@ const BOARD_REDRAW_MS = 15 * 1000;
 const SEARCH_DELAY_MS = 250;
 const MAX_ROWS = 150;
 const SLIDER_MAX = WINDOW_MINUTES;
+const WALK_STEP = 0.5; // minutes
+const WALK_MAX = 30;
+const LEAVE_SOON_MIN = 3; // below this the leave time turns yellow
+const LEAVE_CAP_MIN = 10; // beyond this the label only says "more than 10"
 const DEFAULT_MIN = 2;
 const DEFAULT_MAX = 20;
 const MAX_SLIDER_STEP = 5;
@@ -61,6 +65,11 @@ function loadSettings() {
   return {
     stations: Array.isArray(saved.stations) ? saved.stations : [],
     favorites: Array.isArray(saved.favorites) ? saved.favorites : [],
+    walkTimes: Object.fromEntries(
+      Object.entries(saved.walkTimes ?? {}).filter(
+        ([, minutes]) => typeof minutes === "number" && minutes > 0 && minutes <= WALK_MAX,
+      ),
+    ),
     min: Math.min(Math.max(min, 0), SLIDER_MAX - 1),
     max: Math.min(Math.max(maxAbove(max - 1), maxAbove(min)), SLIDER_MAX),
     modes: Array.isArray(saved.modes) ? saved.modes.filter((m) => MODES.includes(m)) : MODES,
@@ -235,6 +244,58 @@ function visibleDepartures() {
   return rows.sort((a, b) => a.time - b.time);
 }
 
+// When the walk to the station has to start, based on its saved walking time.
+// Returns null when no walking time is set for the station.
+function reachability(station, departure, minutes) {
+  const walk = settings.walkTimes[station.id] || 0;
+  if (!walk || departure.cancelled) return null;
+  const leaveIn = minutes - walk;
+  if (leaveIn < 0) return { status: "late", text: t("tooLate") };
+  if (leaveIn < 1) return { status: "now", text: t("leaveNow") };
+  const n = Math.floor(leaveIn);
+  return {
+    status: leaveIn < LEAVE_SOON_MIN ? "soon" : "ok",
+    text: n > LEAVE_CAP_MIN ? t("leaveLater", { n: LEAVE_CAP_MIN }) : t("leaveIn", { n }),
+  };
+}
+
+function formatMinutes(value) {
+  return value.toLocaleString(settings.language === "de" ? "de-DE" : "en-GB");
+}
+
+function renderWalkTimes() {
+  $("walkLabel").hidden = settings.stations.length === 0;
+  $("walkTimes").replaceChildren(
+    ...settings.stations.map((station) => {
+      const name = displayName(station.name);
+      const value = settings.walkTimes[station.id] || 0;
+      const change = (step) => {
+        const next = Math.min(WALK_MAX, Math.max(0, value + step));
+        const { [station.id]: _, ...others } = settings.walkTimes;
+        settings.walkTimes = next > 0 ? { ...others, [station.id]: next } : others;
+        saveSettings();
+        renderWalkTimes();
+        renderBoard();
+      };
+      const less = el("button", "walk-step", "−");
+      const more = el("button", "walk-step", "+");
+      less.type = more.type = "button";
+      less.disabled = value <= 0;
+      more.disabled = value >= WALK_MAX;
+      less.setAttribute("aria-label", t("walkLess", { name }));
+      more.setAttribute("aria-label", t("walkMore", { name }));
+      less.addEventListener("click", () => change(-WALK_STEP));
+      more.addEventListener("click", () => change(WALK_STEP));
+      const shown = value ? t("minutes", { n: formatMinutes(value) }) : t("walkOff");
+      const controls = el("span", "walk-controls");
+      controls.append(less, el("span", "walk-value", shown), more);
+      const item = el("li", "walk-row");
+      item.append(el("span", "walk-name", name), controls);
+      return item;
+    }),
+  );
+}
+
 function renderRow({ departure, station, direction, time, minutes }) {
   const row = el("li", "departure");
   if (departure.cancelled) row.classList.add("is-cancelled");
@@ -256,7 +317,13 @@ function renderRow({ departure, station, direction, time, minutes }) {
     details.push(isNumber ? t("platform", { p: departure.platform }) : departure.platform);
   }
   if (DIRECTION_LABELS[direction]) details.push(t(DIRECTION_LABELS[direction]));
-  main.append(el("span", "departure-details", details.join(" · ")));
+  const detailLine = el("span", "departure-details", details.join(" · "));
+  const reach = reachability(station, departure, minutes);
+  if (reach) {
+    row.classList.add(`reach-${reach.status}`);
+    detailLine.prepend(el("span", `leave leave-${reach.status}`, reach.text));
+  }
+  main.append(detailLine);
 
   const when = el("div", "departure-when");
   if (departure.cancelled) {
@@ -432,6 +499,8 @@ function renderChips() {
       return chip;
     }),
   );
+
+  renderWalkTimes();
 
   // Favorites that are selected already appear above with a filled star.
   const others = settings.favorites.filter((f) => !settings.stations.some((s) => s.id === f.id));

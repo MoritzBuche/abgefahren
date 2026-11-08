@@ -3,7 +3,7 @@
 // OpenStreetMap's tile policy does not allow bulk storage. The app saves its
 // last departures on its own.
 
-const CACHE = "abfahrt-v5";
+const CACHE = "abfahrt-v6";
 const APP_FILES = [
   "./",
   "styles.css",
@@ -24,7 +24,10 @@ const APP_FILES = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(APP_FILES)).then(() => self.skipWaiting()),
+    caches
+      .open(CACHE)
+      .then((cache) => cache.addAll(APP_FILES.map((file) => new Request(file, { cache: "reload" }))))
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -40,8 +43,11 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (event.request.method !== "GET" || url.origin !== location.origin) return;
   // Network first, so updates show up as soon as the server is reachable.
+  // "no-cache" makes the browser check with the server every time: simple web
+  // servers send no caching rules, and an old cached page next to new code
+  // would break the app.
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request.url, { cache: "no-cache" })
       .then((response) => {
         if (response.ok) {
           const copy = response.clone();
