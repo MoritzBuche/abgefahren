@@ -71,8 +71,27 @@ ul, ol { list-style: none; }
   margin: 0 auto;
   padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
 }
-.brand { font-size: 1.3rem; font-weight: 750; letter-spacing: -0.01em; }
-.brand span { font-weight: 400; color: var(--muted); }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+.brand-icon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+}
+.brand-text { display: flex; flex-direction: column; line-height: 1.05; }
+.brand-name { font-size: 1.3rem; font-weight: 750; letter-spacing: -0.01em; }
+.brand-sub {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 
 .topbar-actions { display: flex; align-items: center; gap: 8px; }
 .lang { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }

@@ -1,6 +1,6 @@
 {
-  "name": "Abfahrt Berlin",
-  "short_name": "Abfahrt",
+  "name": "Abgefahren – Berlin",
+  "short_name": "Abgefahren",
   "description": "Live departures for your Berlin stations.",
   "lang": "de",
   "start_url": "./",

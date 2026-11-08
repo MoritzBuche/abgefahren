@@ -1,4 +1,4 @@
-# Abfahrt Berlin
+# Abgefahren – Berlin
 
 Installable web app (PWA) showing live departures for your Berlin stations, in
 German and English. Plain JavaScript and CSS, no build step and no backend: the
