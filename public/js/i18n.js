@@ -1,0 +1,137 @@
+const STRINGS = {
+  de: {
+    language: "Sprache",
+    settings: "Einstellungen",
+    done: "Fertig",
+    stations: "Haltestellen",
+    searchPlaceholder: "Haltestelle suchen, z. B. Alexanderplatz",
+    noResults: "Keine Haltestelle gefunden",
+    searchFailed: "Suche gerade nicht möglich",
+    removeStation: "{name} entfernen",
+    favorites: "Favoriten",
+    addFavorite: "{name} zu den Favoriten hinzufügen",
+    removeFavorite: "{name} aus den Favoriten entfernen",
+    showStation: "Abfahrten von {name} anzeigen",
+    minTime: "Frühestens in",
+    maxTime: "Spätestens in",
+    minutes: "{n} Min.",
+    transport: "Verkehrsmittel",
+    direction: "Richtung",
+    reference: "Bezugspunkt",
+    towardsPlace: "zum {place}",
+    awayFromPlace: "weg vom {place}",
+    dirBoth: "Beide",
+    dirInward: "Stadteinwärts",
+    dirOutward: "Stadtauswärts",
+    dirRing: "Ring",
+    suburban: "S-Bahn",
+    subway: "U-Bahn",
+    tram: "Tram",
+    bus: "Bus",
+    regional: "Regio",
+    express: "Fernverkehr",
+    ferry: "Fähre",
+    departures: "Abfahrten",
+    refresh: "Aktualisieren",
+    refreshing: "Lädt …",
+    nextAuto: "nächstes automatisches Update in {time}",
+    waitFor: "Noch nicht möglich, wieder in {time}",
+    never: "Noch nicht geladen",
+    updated: "Stand {time}",
+    now: "jetzt",
+    inMinutes: "{n} Min.",
+    cancelled: "fällt aus",
+    platform: "Gl. {p}",
+    mapZoomIn: "Karte vergrößern",
+    mapZoomOut: "Karte verkleinern",
+    mapOpen: "In OpenStreetMap öffnen",
+    emptyNoStation: "Wähle in den Einstellungen eine Haltestelle aus, um ihre Abfahrten zu sehen.",
+    emptyLoading: "Abfahrten werden geladen …",
+    emptyNoModes: "Wähle mindestens ein Verkehrsmittel aus.",
+    emptyFiltered: "Keine Abfahrten für diese Filter. Vergrößere den Zeitraum oder ändere die Auswahl.",
+    emptyCentral: "Diese Haltestelle liegt direkt am Bezugspunkt {place}, von dort fährt nichts stadteinwärts.",
+    moreRows: "+ {n} weitere Abfahrten. Verkürze den Zeitraum, um sie zu sehen.",
+    errorLoad: "{names} konnte nicht geladen werden. Es werden die letzten bekannten Daten angezeigt.",
+    credit: "Daten: BVG/VBB über transport.rest · Inoffizielle App",
+  },
+  en: {
+    language: "Language",
+    settings: "Settings",
+    done: "Done",
+    stations: "Stations",
+    searchPlaceholder: "Search for a station, e.g. Alexanderplatz",
+    noResults: "No station found",
+    searchFailed: "Search is unavailable right now",
+    removeStation: "Remove {name}",
+    favorites: "Favorites",
+    addFavorite: "Add {name} to favorites",
+    removeFavorite: "Remove {name} from favorites",
+    showStation: "Show departures from {name}",
+    minTime: "Earliest in",
+    maxTime: "Latest in",
+    minutes: "{n} min",
+    transport: "Transport",
+    direction: "Direction",
+    reference: "Reference point",
+    towardsPlace: "to {place}",
+    awayFromPlace: "away from {place}",
+    dirBoth: "Both",
+    dirInward: "City inward",
+    dirOutward: "City outward",
+    dirRing: "Ring",
+    suburban: "S-Bahn",
+    subway: "U-Bahn",
+    tram: "Tram",
+    bus: "Bus",
+    regional: "Regional",
+    express: "Long-distance",
+    ferry: "Ferry",
+    departures: "Departures",
+    refresh: "Refresh",
+    refreshing: "Loading…",
+    nextAuto: "next automatic update in {time}",
+    waitFor: "Not available yet, back in {time}",
+    never: "Not loaded yet",
+    updated: "Updated {time}",
+    now: "now",
+    inMinutes: "{n} min",
+    cancelled: "cancelled",
+    platform: "Pl. {p}",
+    mapZoomIn: "Zoom in",
+    mapZoomOut: "Zoom out",
+    mapOpen: "Open in OpenStreetMap",
+    emptyNoStation: "Choose a station in the settings to see its departures.",
+    emptyLoading: "Loading departures…",
+    emptyNoModes: "Select at least one type of transport.",
+    emptyFiltered: "No departures match these filters. Widen the time range or change your selection.",
+    emptyCentral: "This station is right at your reference point {place}, so nothing from it runs inward.",
+    moreRows: "+ {n} more departures. Shorten the time range to see them.",
+    errorLoad: "Could not load {names}. Showing the last known data.",
+    credit: "Data: BVG/VBB via transport.rest · Unofficial app",
+  },
+};
+
+let language = "de";
+
+export function setLanguage(next) {
+  language = STRINGS[next] ? next : "de";
+  document.documentElement.lang = language;
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+    el.setAttribute("aria-label", t(el.dataset.i18nAria));
+  });
+}
+
+export function t(key, vars = {}) {
+  const template = STRINGS[language][key] ?? key;
+  return template.replace(/\{(\w+)\}/g, (_, name) => vars[name] ?? "");
+}
+
+export function preferredLanguage() {
+  return (navigator.language || "").toLowerCase().startsWith("de") ? "de" : "en";
+}

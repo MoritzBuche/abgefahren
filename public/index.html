@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Abfahrt Berlin</title>
+  <meta name="description" content="Live departures for your Berlin stations.">
+  <meta name="theme-color" content="#f4f1ea" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#11181d" media="(prefers-color-scheme: dark)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Abfahrt">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="brand">Abfahrt <span>Berlin</span></h1>
+    <div class="topbar-actions">
+      <div class="lang" role="group" data-i18n-aria="language">
+        <button type="button" data-lang="de">DE</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+      <button id="settingsToggle" type="button" class="icon-button" aria-controls="settings"
+              aria-expanded="false" data-i18n-aria="settings">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h.01"/>
+          <circle cx="15" cy="6" r="2.5"/>
+          <circle cx="9" cy="12" r="2.5"/>
+          <circle cx="17" cy="18" r="2.5"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside id="settings" class="controls" hidden>
+      <section class="stations">
+        <label class="label" for="search" data-i18n="stations"></label>
+        <div class="search">
+          <input id="search" type="search" autocomplete="off" spellcheck="false"
+                 role="combobox" aria-expanded="false" aria-controls="results"
+                 data-i18n-placeholder="searchPlaceholder">
+          <ul id="results" class="results" hidden></ul>
+        </div>
+        <ul id="chips" class="chips"></ul>
+        <span id="favoritesLabel" class="label label-spaced" data-i18n="favorites" hidden></span>
+        <ul id="favorites" class="chips"></ul>
+      </section>
+
+      <section id="map" class="map" hidden></section>
+
+      <div class="filters">
+        <div class="filter-group">
+          <div class="slider">
+            <label for="minTime" data-i18n="minTime"></label>
+            <output id="minTimeOut" for="minTime"></output>
+            <input id="minTime" type="range" min="0" max="39" step="1">
+          </div>
+          <div class="slider">
+            <label for="maxTime" data-i18n="maxTime"></label>
+            <output id="maxTimeOut" for="maxTime"></output>
+            <input id="maxTime" type="range" min="5" max="40" step="5">
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="label" id="modesLabel" data-i18n="transport"></span>
+          <div id="modes" class="modes" role="group" aria-labelledby="modesLabel"></div>
+        </div>
+
+        <div class="filter-group">
+          <span class="label" id="dirLabel" data-i18n="direction"></span>
+          <div id="directions" class="segments" role="group" aria-labelledby="dirLabel"></div>
+          <span class="label label-spaced" id="centreLabel" data-i18n="reference"></span>
+          <div id="centres" class="segments" role="group" aria-labelledby="centreLabel"></div>
+        </div>
+      </div>
+
+      <button id="settingsDone" type="button" class="done" data-i18n="done"></button>
+    </aside>
+
+    <section class="board" aria-labelledby="boardTitle">
+      <div class="toolbar">
+        <div class="status">
+          <h2 id="boardTitle"></h2>
+          <p id="status"></p>
+        </div>
+        <button id="refresh" type="button" class="refresh">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3.5 12a8.5 8.5 0 0 1 14.5-6l2.5 2.5"/>
+            <path d="M20.5 3.5v5h-5"/>
+            <path d="M20.5 12a8.5 8.5 0 0 1-14.5 6l-2.5-2.5"/>
+            <path d="M3.5 20.5v-5h5"/>
+            <g class="refresh-strike">
+              <path class="refresh-strike-gap" d="M4 4l16 16"/>
+              <path d="M4 4l16 16"/>
+            </g>
+          </svg>
+        </button>
+      </div>
+      <p id="notice" class="notice" role="status" hidden></p>
+      <ol id="departures" class="departures"></ol>
+      <p id="empty" class="empty" hidden></p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span data-i18n="credit"></span>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
