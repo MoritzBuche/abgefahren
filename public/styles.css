@@ -13,6 +13,7 @@
   --ok: #0d6b4f;
   --pin: #c9281e;
   --star: #b7791f;
+  --flash: #cdeedd;
   --shadow: 0 8px 24px rgb(26 35 41 / 0.14);
 }
 
@@ -30,6 +31,7 @@
     --warn-bg: #3b231a;
     --ok: #6fd6b1;
     --star: #ffc83d;
+    --flash: #23584a;
     --shadow: 0 8px 24px rgb(0 0 0 / 0.45);
   }
 }

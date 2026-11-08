@@ -302,7 +302,9 @@ function renderNotice() {
 
 // The list keeps one element per departure between redraws, so rows can glide
 // to their new place, fade out when they leave and fade in when they arrive.
-const MOTION_MS = 450;
+const MOTION_MS = 1200; // rows gliding and the list resizing
+const ENTER_MS = 2200; // new rows fade in and their highlight fades away
+const LEAVE_MS = 1000; // old rows dim, shrink slightly and fade out
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const rowElements = new Map();
 
@@ -320,12 +322,20 @@ function rowOffsets(list) {
 
 function animateBoard(list, before, oldHeight, leaving) {
   const after = rowOffsets(list);
+  const styles = getComputedStyle(document.documentElement);
+  const flash = styles.getPropertyValue("--flash").trim();
+  const surface = styles.getPropertyValue("--surface").trim();
   for (const [key, li] of rowElements) {
     const from = before.get(key);
     if (from === undefined) {
+      // Flashes up in the highlight colour, then settles into the list.
       li.animate(
-        [{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "none" }],
-        { duration: MOTION_MS, easing: "ease-out" },
+        [
+          { opacity: 0, transform: "scale(0.97)", backgroundColor: flash },
+          { opacity: 1, transform: "scale(1.01)", backgroundColor: flash, offset: 0.25 },
+          { opacity: 1, transform: "none", backgroundColor: surface },
+        ],
+        { duration: ENTER_MS, easing: "ease-out" },
       );
     } else if (Math.abs(from - after.get(key)) > 0.5) {
       li.animate(
@@ -340,11 +350,14 @@ function animateBoard(list, before, oldHeight, leaving) {
     li.classList.add("is-leaving");
     li.style.top = `${before.get(key)}px`;
     list.append(li);
-    const fade = li.animate([{ opacity: 1 }, { opacity: 0 }], {
-      duration: MOTION_MS * 0.7,
-      easing: "ease-in",
-      fill: "forwards",
-    });
+    // The opposite of arriving: dims, shrinks slightly and fades away.
+    const fade = li.animate(
+      [
+        { opacity: 1, transform: "none", filter: "none" },
+        { opacity: 0, transform: "scale(0.96)", filter: "grayscale(1) brightness(0.7)" },
+      ],
+      { duration: LEAVE_MS, easing: "ease-in", fill: "forwards" },
+    );
     fade.onfinish = () => li.remove();
   }
 
