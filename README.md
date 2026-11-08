@@ -5,6 +5,13 @@ German and English. Plain JavaScript and CSS, no build step and no backend: the
 browser calls the transit API directly, so any static web server can host the
 `public` folder.
 
+## How this app was made
+
+This app was vibe coded: Claude, Anthropic's AI assistant (in Claude Code), wrote
+the code. I came up with the idea and steered it step by step with instructions and
+feedback, and made only a few small changes myself. So the credit for the code goes
+to Claude; the idea is mine.
+
 ## Run
 
 Any static web server works. For example:
