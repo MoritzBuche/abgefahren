@@ -639,22 +639,11 @@ html { overscroll-behavior-y: contain; }
 .leave-now { background: var(--reach-now); color: #2b1400; }
 .leave-late { background: var(--reach-late); color: #fff; }
 
-.walk-list { display: flex; flex-direction: column; gap: 4px; }
+.walk-list { display: flex; flex-direction: column; gap: 6px; }
 .walk-list:empty { display: none; }
-.walk-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.walk-row { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0 8px; }
 .walk-name { min-width: 0; overflow: hidden; font-size: 0.9rem; white-space: nowrap; text-overflow: ellipsis; }
-.walk-controls { display: flex; flex-shrink: 0; align-items: center; gap: 4px; }
-.walk-step {
-  width: 36px;
-  height: 36px;
-  background: var(--surface-2);
-  border: 0;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-.walk-step:disabled { opacity: 0.4; }
-.walk-value { min-width: 64px; font-weight: 650; text-align: center; font-variant-numeric: tabular-nums; }
+.walk-value { font-weight: 700; font-variant-numeric: tabular-nums; }
 
 .empty {
   padding: 36px 20px;

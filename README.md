@@ -55,8 +55,8 @@ Tapping the star again removes the favorite.
 
 ## Walking time and leave time
 
-In the settings, each selected station can get a walking time in half-minute
-steps. Its departures then show when you have to leave, with a coloured stripe and
+In the settings, each selected station has a walking-time slider from 0 to 15
+minutes: half-minute steps up to 5 minutes, whole minutes after that. Its departures then show when you have to leave, with a coloured stripe and
 label: green with 3 or more minutes to spare, yellow below 3, orange to leave now,
 and red when the departure can no longer be reached. Stations without a walking
 time look as before.

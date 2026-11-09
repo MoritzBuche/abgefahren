@@ -15,8 +15,17 @@ const BOARD_REDRAW_MS = 15 * 1000;
 const SEARCH_DELAY_MS = 250;
 const MAX_ROWS = 150;
 const SLIDER_MAX = WINDOW_MINUTES;
-const WALK_STEP = 0.5; // minutes
-const WALK_MAX = 30;
+// Walking times in minutes: half minutes up to 5, then whole minutes up to 15.
+const WALK_VALUES = [
+  ...Array.from({ length: 11 }, (_, i) => i / 2),
+  ...Array.from({ length: 10 }, (_, i) => 6 + i),
+];
+const WALK_MAX = WALK_VALUES.at(-1);
+
+// The allowed walking time closest to a saved one, for values saved by older versions.
+function nearestWalkValue(minutes) {
+  return WALK_VALUES.reduce((best, v) => (Math.abs(v - minutes) < Math.abs(best - minutes) ? v : best));
+}
 const LEAVE_SOON_MIN = 3; // below this the leave time turns yellow
 const LEAVE_CAP_MIN = 10; // beyond this the label only says "more than 10"
 const DEFAULT_MIN = 0;
@@ -67,9 +76,9 @@ function loadSettings() {
     stations: Array.isArray(saved.stations) ? saved.stations : [],
     favorites: Array.isArray(saved.favorites) ? saved.favorites : [],
     walkTimes: Object.fromEntries(
-      Object.entries(saved.walkTimes ?? {}).filter(
-        ([, minutes]) => typeof minutes === "number" && minutes > 0 && minutes <= WALK_MAX,
-      ),
+      Object.entries(saved.walkTimes ?? {})
+        .filter(([, minutes]) => typeof minutes === "number" && minutes > 0)
+        .map(([id, minutes]) => [id, nearestWalkValue(Math.min(minutes, WALK_MAX))]),
     ),
     min: Math.min(Math.max(min, 0), SLIDER_MAX - 1),
     max: Math.min(Math.max(maxAbove(max - 1), maxAbove(min)), SLIDER_MAX),
@@ -248,7 +257,7 @@ function visibleDepartures() {
 // When the walk to the station has to start, based on its saved walking time.
 // Returns null when no walking time is set for the station.
 function reachability(station, departure, minutes) {
-  const walk = settings.walkTimes[station.id] || 0;
+  const walk = walkTime(station);
   if (!walk || departure.cancelled) return null;
   const leaveIn = minutes - walk;
   if (leaveIn < 0) return { status: "late", text: t("tooLate") };
@@ -264,34 +273,52 @@ function formatMinutes(value) {
   return value.toLocaleString(settings.language === "de" ? "de-DE" : "en-GB");
 }
 
+function walkTime(station) {
+  return settings.walkTimes[station.id] || 0;
+}
+
+function walkLabel(minutes) {
+  return minutes ? t("minutes", { n: formatMinutes(minutes) }) : t("walkOff");
+}
+
+// One slider per station. The slider counts positions in WALK_VALUES, which gives
+// half minutes up to 5 and whole minutes after that.
 function renderWalkTimes() {
   $("walkLabel").hidden = settings.stations.length === 0;
   $("walkTimes").replaceChildren(
     ...settings.stations.map((station) => {
-      const name = displayName(station.name);
-      const value = settings.walkTimes[station.id] || 0;
-      const change = (step) => {
-        const next = Math.min(WALK_MAX, Math.max(0, value + step));
-        const { [station.id]: _, ...others } = settings.walkTimes;
-        settings.walkTimes = next > 0 ? { ...others, [station.id]: next } : others;
-        saveSettings();
-        renderWalkTimes();
-        renderBoard();
+      const value = el("output", "walk-value");
+      const range = el("div", "range");
+      const input = el("input");
+      input.type = "range";
+      input.min = 0;
+      input.max = WALK_VALUES.length - 1;
+      input.step = 1;
+      input.setAttribute("aria-label", t("walkFor", { name: displayName(station.name) }));
+      range.append(el("div", "range-track"), input);
+      range.firstChild.append(el("div", "range-fill"));
+
+      // Updates this row in place: redrawing the list would end the drag.
+      const show = (minutes) => {
+        const label = walkLabel(minutes);
+        value.textContent = label;
+        input.value = WALK_VALUES.indexOf(minutes);
+        input.setAttribute("aria-valuetext", label);
+        range.style.setProperty("--from", 0);
+        range.style.setProperty("--to", input.value / input.max);
       };
-      const less = el("button", "walk-step", "−");
-      const more = el("button", "walk-step", "+");
-      less.type = more.type = "button";
-      less.disabled = value <= 0;
-      more.disabled = value >= WALK_MAX;
-      less.setAttribute("aria-label", t("walkLess", { name }));
-      more.setAttribute("aria-label", t("walkMore", { name }));
-      less.addEventListener("click", () => change(-WALK_STEP));
-      more.addEventListener("click", () => change(WALK_STEP));
-      const shown = value ? t("minutes", { n: formatMinutes(value) }) : t("walkOff");
-      const controls = el("span", "walk-controls");
-      controls.append(less, el("span", "walk-value", shown), more);
+      input.addEventListener("input", () => {
+        const minutes = WALK_VALUES[Number(input.value)];
+        const { [station.id]: _, ...others } = settings.walkTimes;
+        settings.walkTimes = minutes > 0 ? { ...others, [station.id]: minutes } : others;
+        saveSettings();
+        show(minutes);
+        renderBoard();
+      });
+      show(walkTime(station));
+
       const item = el("li", "walk-row");
-      item.append(el("span", "walk-name", name), controls);
+      item.append(el("span", "walk-name", displayName(station.name)), value, range);
       return item;
     }),
   );

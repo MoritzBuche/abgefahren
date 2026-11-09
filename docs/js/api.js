@@ -5,7 +5,7 @@ const UPSTREAMS = ["https://v6.bvg.transport.rest", "https://v6.vbb.transport.re
 const UPSTREAM_TIMEOUT_MS = 6000; // per service
 
 // Always fetched in full so the sliders can filter without a new request.
-export const WINDOW_MINUTES = 40;
+export const WINDOW_MINUTES = 25;
 
 async function fetchWithTimeout(url, signal, options) {
   const controller = new AbortController();
