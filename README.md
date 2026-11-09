@@ -3,7 +3,7 @@
 Installable web app (PWA) showing live departures for your Berlin stations, in
 German and English. Plain JavaScript and CSS, no build step and no backend: the
 browser calls the transit API directly, so any static web server can host the
-`public` folder.
+`docs` folder.
 
 ## How this app was made
 
@@ -17,7 +17,7 @@ to Claude; the idea is mine.
 Any static web server works. For example:
 
 ```bash
-python3 -m http.server 8000 --directory public
+python3 -m http.server 8000 --directory docs
 ```
 
 Then open <http://localhost:8000>. Opening `index.html` directly as a file does not
@@ -27,20 +27,21 @@ work, because browsers block JavaScript modules and service workers there.
 
 Browsers only allow installation and offline mode on `localhost` or over HTTPS.
 On your own network the app works as a normal website. To install it, host the
-`public` folder over HTTPS, for example with Caddy, Nginx, or a static host such as
+`docs` folder over HTTPS, for example with Caddy, Nginx, or a static host such as
 GitHub Pages or Netlify.
 
 ## How it is built
 
 | Part | Job |
 | --- | --- |
-| `public/js/api.js` | Calls the transit API, with a second service as fallback |
-| `public/js/app.js` | State, refresh timing, filters, rendering |
-| `public/js/direction.js` | Inward/outward estimate |
-| `public/js/map.js` | OpenStreetMap minimap from plain tile images |
-| `public/js/i18n.js` | German and English text |
-| `public/js/icons.js` | Transport symbols and line colours, drawn in the style of Berlin signage (not official logo files) |
-| `public/sw.js` | Makes the app itself available offline |
+| `docs/js/api.js` | Calls the transit API, with a second service as fallback |
+| `docs/js/app.js` | State, refresh timing, filters, rendering |
+| `docs/js/direction.js` | Inward/outward estimate |
+| `docs/js/map.js` | OpenStreetMap minimap from plain tile images |
+| `docs/js/i18n.js` | German and English text |
+| `docs/js/icons.js` | Transport symbols and line colours, drawn in the style of Berlin signage (not official logo files) |
+| `docs/js/pull.js` | Pull down to refresh on touch screens |
+| `docs/sw.js` | Makes the app itself available offline |
 
 Settings and the last departures are saved in the browser's `localStorage`. The
 browser contacts transport.rest and OpenStreetMap directly, so those services see
@@ -67,6 +68,8 @@ time look as before.
   brackets next to the last update time.
 - Manual refresh at most once per 30 seconds, also across page reloads. The symbol
   is struck through and the button is disabled during the wait.
+- On a phone, pulling down at the top of the list refreshes like the button. If
+  it's too early, the round indicator shows the struck-through symbol and shakes.
 - Opening the app, or returning to it after a refresh was missed, loads fresh data
   straight away, also between full minutes.
 - Filters run in the browser and never cause a request.
@@ -77,7 +80,7 @@ time look as before.
 The transit API has no such field. In the settings you choose what "inward" means:
 towards Hauptbahnhof (default), Alexanderplatz or Zoologischer Garten. The app
 compares the direction from the station to the destination with the direction from
-the station to that point. The places are defined in `public/js/direction.js`.
+the station to that point. The places are defined in `docs/js/direction.js`.
 
 - Stations within 500 m of the chosen point count everything as outward.
 - Ring lines (S41, S42) are neither, so they only appear under "Both".

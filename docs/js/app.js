@@ -3,6 +3,7 @@ import { CENTRES, DEFAULT_CENTRE, classify, isAtCentre } from "./direction.js";
 import { preferredLanguage, setLanguage, t } from "./i18n.js";
 import { centreIcon, lineColors, lineName, modeIcon, starIcon } from "./icons.js";
 import { createMap } from "./map.js";
+import { setupPullToRefresh } from "./pull.js";
 
 const AUTO_REFRESH_MS = 2 * 60 * 1000;
 const REFRESH_COOLDOWN_MS = 30 * 1000;
@@ -747,6 +748,16 @@ $("maxTime").addEventListener("input", (event) => {
 });
 
 $("refresh").addEventListener("click", refresh);
+
+// The pull indicator uses the same symbol as the refresh button.
+$("pullIndicator").append($("refresh").querySelector("svg").cloneNode(true));
+setupPullToRefresh({
+  indicator: $("pullIndicator"),
+  isAllowed: () => !runtime.loading && cooldownLeft() <= 0,
+  refresh,
+  // No pull while the settings are open or before a station is chosen.
+  ignore: () => !$("settings").hidden || settings.stations.length === 0,
+});
 
 document.querySelectorAll("[data-lang]").forEach((button) => {
   button.addEventListener("click", () => {

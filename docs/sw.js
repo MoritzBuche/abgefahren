@@ -3,7 +3,7 @@
 // OpenStreetMap's tile policy does not allow bulk storage. The app saves its
 // last departures on its own.
 
-const CACHE = "abfahrt-v8";
+const CACHE = "abfahrt-v11";
 const APP_FILES = [
   "./",
   "styles.css",
@@ -14,6 +14,7 @@ const APP_FILES = [
   "js/i18n.js",
   "js/icons.js",
   "js/map.js",
+  "js/pull.js",
   "icons/favicon.svg",
   "icons/favicon-32.png",
   "icons/icon-192.png",

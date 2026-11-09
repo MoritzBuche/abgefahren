@@ -69,7 +69,27 @@ ul, ol { list-style: none; }
   justify-content: space-between;
   max-width: 720px;
   margin: 0 auto;
-  padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+  padding: calc(12px + var(--top-extra) + env(safe-area-inset-top)) 16px 12px;
+}
+
+/* As an installed app there is no browser bar above the page, so the top gets a
+   little more room below the clock and status icons. */
+:root { --top-extra: 0px; }
+@media (display-mode: standalone) {
+  :root { --top-extra: 14px; }
+}
+
+/* Covers the strip behind the status bar, so scrolled content doesn't show
+   through under the clock. Its height is 0 where there is no such strip. */
+body::before {
+  content: "";
+  position: fixed;
+  z-index: 35;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: env(safe-area-inset-top);
+  background: var(--bg);
 }
 .brand {
   display: flex;
@@ -402,7 +422,7 @@ ul, ol { list-style: none; }
 .toolbar {
   position: sticky;
   z-index: 10;
-  top: 0;
+  top: env(safe-area-inset-top);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -434,6 +454,50 @@ ul, ol { list-style: none; }
 .refresh.is-loading svg { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .refresh.is-loading svg { animation: none; } }
+
+/* ---------- Pull to refresh ---------- */
+
+/* Keeps the browser's own pull-to-reload from reloading the whole page. */
+html { overscroll-behavior-y: contain; }
+
+.pull {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + var(--top-extra));
+  left: 50%;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  color: var(--muted);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -64px);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.pull svg { transform: rotate(var(--turn, 0deg)); }
+.pull .refresh-strike { display: none; }
+.pull .refresh-strike-gap { stroke: var(--surface); }
+.pull.is-ready, .pull.is-loading { color: var(--accent); }
+.pull.is-blocked { color: var(--muted); }
+.pull.is-blocked svg { transform: none; }
+.pull.is-blocked .refresh-strike { display: inline; }
+.pull.is-loading svg { animation: spin 1s linear infinite; }
+.pull.is-shaking svg { animation: shake 0.5s ease; }
+@keyframes shake {
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pull { transition: opacity 0.2s; }
+  .pull.is-loading svg, .pull.is-shaking svg { animation: none; }
+}
 
 .notice {
   margin-bottom: 10px;
