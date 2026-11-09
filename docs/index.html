@@ -58,15 +58,14 @@
 
       <div class="filters">
         <div class="filter-group">
-          <div class="slider">
-            <label for="minTime" data-i18n="minTime"></label>
-            <output id="minTimeOut" for="minTime"></output>
-            <input id="minTime" type="range" min="0" max="39" step="1">
-          </div>
-          <div class="slider">
-            <label for="maxTime" data-i18n="maxTime"></label>
-            <output id="maxTimeOut" for="maxTime"></output>
-            <input id="maxTime" type="range" min="5" max="40" step="5">
+          <div class="slider" role="group" aria-labelledby="timeRangeLabel">
+            <span class="label" id="timeRangeLabel" data-i18n="timeRange"></span>
+            <output id="timeRangeOut" for="minTime maxTime"></output>
+            <div class="range" id="timeRange">
+              <div class="range-track"><div class="range-fill"></div></div>
+              <input id="minTime" type="range" min="0" max="40" step="1" data-i18n-aria="minTime">
+              <input id="maxTime" type="range" min="0" max="40" step="5" data-i18n-aria="maxTime">
+            </div>
           </div>
         </div>
 

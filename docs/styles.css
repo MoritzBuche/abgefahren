@@ -372,16 +372,77 @@ body::before {
   align-items: baseline;
   gap: 2px 8px;
 }
-.slider + .slider { margin-top: 12px; }
-.slider label { font-size: 0.9rem; }
+.slider .label { margin: 0; font-size: 0.9rem; }
 .slider output { font-weight: 700; font-variant-numeric: tabular-nums; }
-.slider input {
+
+/* One track with two handles: two range inputs on top of each other. Only the
+   handles take touches, so each one can be grabbed through the other input. */
+.range {
+  --thumb: 26px;
+  position: relative;
   grid-column: 1 / -1;
-  width: 100%;
-  height: 32px;
-  margin: 0;
-  accent-color: var(--accent);
+  height: 36px;
 }
+.range-track {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--thumb) / 2);
+  left: calc(var(--thumb) / 2);
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  transform: translateY(-50%);
+}
+.range-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--from) * 100%);
+  width: calc((var(--to) - var(--from)) * 100%);
+  background: var(--accent);
+  border-radius: 3px;
+}
+.range input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.range input:focus-visible { outline: none; }
+.range input.is-front { z-index: 1; }
+.range input::-webkit-slider-runnable-track { height: 100%; background: transparent; border: 0; }
+.range input::-moz-range-track { height: 100%; background: transparent; border: 0; }
+.range input::-webkit-slider-thumb {
+  width: var(--thumb);
+  height: var(--thumb);
+  margin-top: calc((36px - var(--thumb)) / 2);
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+  cursor: grab;
+  pointer-events: auto;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.range input::-moz-range-thumb {
+  width: var(--thumb);
+  height: var(--thumb);
+  box-sizing: border-box;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+  cursor: grab;
+  pointer-events: auto;
+}
+.range input:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--accent); outline-offset: 2px; }
+.range input:focus-visible::-moz-range-thumb { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .modes { display: flex; flex-wrap: wrap; gap: 6px; }
 .mode-icon { display: inline-flex; flex-shrink: 0; }

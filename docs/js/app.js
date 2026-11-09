@@ -19,8 +19,8 @@ const WALK_STEP = 0.5; // minutes
 const WALK_MAX = 30;
 const LEAVE_SOON_MIN = 3; // below this the leave time turns yellow
 const LEAVE_CAP_MIN = 10; // beyond this the label only says "more than 10"
-const DEFAULT_MIN = 2;
-const DEFAULT_MAX = 20;
+const DEFAULT_MIN = 0;
+const DEFAULT_MAX = 15;
 const MAX_SLIDER_STEP = 5;
 
 const MODES = ["suburban", "subway", "tram", "bus", "regional", "express", "ferry"];
@@ -523,8 +523,15 @@ function renderChips() {
 function renderFilters() {
   $("minTime").value = settings.min;
   $("maxTime").value = settings.max;
-  $("minTimeOut").textContent = t("minutes", { n: settings.min });
-  $("maxTimeOut").textContent = t("minutes", { n: settings.max });
+  $("minTime").setAttribute("aria-valuetext", t("minutes", { n: settings.min }));
+  $("maxTime").setAttribute("aria-valuetext", t("minutes", { n: settings.max }));
+  $("timeRangeOut").textContent = t("timeRangeValue", { min: settings.min, max: settings.max });
+  const range = $("timeRange");
+  range.style.setProperty("--from", settings.min / SLIDER_MAX);
+  range.style.setProperty("--to", settings.max / SLIDER_MAX);
+  // Near the right end the earliest handle has to lie on top, or it could not be
+  // dragged back out from under the latest handle.
+  $("minTime").classList.toggle("is-front", settings.min > SLIDER_MAX / 2);
 
   $("modes").replaceChildren(
     ...MODES.map((mode) => {
@@ -736,14 +743,13 @@ document.addEventListener("click", (event) => {
   if (!event.target.closest(".search")) closeResults();
 });
 
+// The two handles stop at each other instead of pushing each other along.
 $("minTime").addEventListener("input", (event) => {
-  settings.min = Number(event.target.value);
-  if (settings.max <= settings.min) settings.max = maxAbove(settings.min);
+  settings.min = Math.min(Number(event.target.value), settings.max - 1);
   filtersChanged();
 });
 $("maxTime").addEventListener("input", (event) => {
-  settings.max = Number(event.target.value);
-  if (settings.min >= settings.max) settings.min = settings.max - 1;
+  settings.max = Math.max(Number(event.target.value), maxAbove(settings.min), MAX_SLIDER_STEP);
   filtersChanged();
 });
 
