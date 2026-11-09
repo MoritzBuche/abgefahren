@@ -90,7 +90,10 @@ function loadSettings() {
 }
 
 const settings = loadSettings();
-const data = { departures: {}, updatedAt: 0, lastRefresh: 0, ...readStorage(DATA_KEY) };
+const data = { departures: {}, updatedAt: 0, lastRefresh: 0, selected: null, past: [], ...readStorage(DATA_KEY) };
+const validEntry = (e) => Boolean(e && e.key && e.station && e.departure);
+if (!validEntry(data.selected)) data.selected = null;
+data.past = Array.isArray(data.past) ? data.past.filter((e) => validEntry(e) && e.goneAt) : [];
 
 const runtime = {
   loading: false,
@@ -490,15 +493,146 @@ function renderBoard() {
     items.push(el("li", "more-rows", t("moreRows", { n: rows.length - MAX_ROWS })));
   }
 
+  const selectedKey = updateSelection(rows);
+  current.forEach((li, key) => markSelectable(li, key, key === selectedKey));
+
   const leaving = [...rowElements].filter(([key]) => !current.has(key));
   rowElements.clear();
   current.forEach((li, key) => rowElements.set(key, li));
+  // Re-inserting the rows would drop keyboard focus, so it is put back.
+  const focused = list.contains(document.activeElement) ? document.activeElement : null;
   list.replaceChildren(...items);
+  if (focused?.isConnected) focused.focus({ preventScroll: true });
   if (animate) animateBoard(list, before, oldHeight, leaving);
   const empty = $("empty");
   empty.hidden = rows.length > 0;
   empty.textContent = rows.length > 0 ? "" : emptyMessage();
+  renderGone();
   renderNotice();
+}
+
+// ---------- Selected connection ----------
+
+// One departure can be selected and is highlighted. Once a selected departure is
+// no longer listed, it moves to the "past connections" section below the list
+// and stays there for GONE_KEEP_MS, also after it is deselected (data.past).
+//
+// Taps: with nothing selected, a tap selects. With a selection, any tap on a
+// departure only deselects, so switching takes two taps.
+const GONE_KEEP_MS = 5 * 60 * 1000;
+
+function markSelectable(li, key, selected) {
+  li.dataset.key = key;
+  li.tabIndex = 0;
+  li.setAttribute("role", "option");
+  li.setAttribute("aria-selected", String(selected));
+  li.classList.toggle("is-selected", selected);
+}
+
+const expired = (entry) => Date.now() - entry.goneAt > GONE_KEEP_MS;
+
+// Keeps the saved copy of the selected departure current while it is listed,
+// notes when it left the list and drops past entries after their time.
+// Returns the key of a selection that is still in the list.
+function updateSelection(rows) {
+  const listed = new Set(rows.map(rowKey));
+  let changed = false;
+
+  // A past entry that is listed again (a filter was widened) is simply a normal row.
+  const past = data.past.filter((entry) => !expired(entry) && !listed.has(entry.key));
+  if (past.length !== data.past.length) {
+    data.past = past;
+    changed = true;
+  }
+
+  const selected = data.selected;
+  let selectedKey = null;
+  if (selected) {
+    const row = rows.find((r) => rowKey(r) === selected.key);
+    if (row) {
+      selected.departure = row.departure;
+      if (selected.goneAt) selected.goneAt = null;
+      selectedKey = selected.key;
+      changed = true;
+    } else if (!selected.goneAt) {
+      selected.goneAt = Date.now();
+      changed = true;
+    } else if (expired(selected)) {
+      data.selected = null;
+      changed = true;
+    }
+  }
+  if (changed) saveData();
+  return selectedKey;
+}
+
+// Ends the selection. A selection that has already left the list stays in the
+// past section, without the highlight, until its time is up.
+function deselect() {
+  const selected = data.selected;
+  data.selected = null;
+  if (selected?.goneAt) data.past = [...data.past.filter((e) => e.key !== selected.key), selected];
+}
+
+function select(key) {
+  const row = visibleDepartures().find((r) => rowKey(r) === key);
+  const pastEntry = data.past.find((e) => e.key === key);
+  if (row) {
+    data.selected = { key, station: row.station, departure: row.departure, goneAt: null };
+  } else if (pastEntry) {
+    data.selected = pastEntry;
+  } else {
+    return;
+  }
+  data.past = data.past.filter((e) => e.key !== key);
+}
+
+function renderPastRow(entry, selected) {
+  // The latest data for the trip if it is still there, otherwise the saved copy.
+  const fresh = (data.departures[entry.station.id] || []).find(
+    (d) => rowKey({ departure: d }) === entry.key,
+  );
+  const departure = fresh || entry.departure;
+  const time = departureTime(departure);
+  const minutes = (time - Date.now()) / 60000;
+  const direction = classify(entry.station, departure, CENTRES[settings.centre]);
+
+  const li = renderRow({ departure, station: entry.station, direction, time, minutes });
+  li.classList.add("is-gone");
+  if (minutes <= -0.5) {
+    // A leave time makes no sense any more once the train has gone.
+    li.classList.remove("reach-ok", "reach-soon", "reach-now", "reach-late");
+    li.querySelector(".leave")?.remove();
+    if (!departure.cancelled) {
+      const ago = Math.max(1, Math.floor(-minutes));
+      li.querySelector(".departure-relative").textContent = t("minutesAgo", { n: ago });
+    }
+  }
+  markSelectable(li, entry.key, selected);
+  return { li, time };
+}
+
+function renderGone() {
+  const entries = [
+    ...data.past.map((entry) => renderPastRow(entry, false)),
+    ...(data.selected?.goneAt ? [renderPastRow(data.selected, true)] : []),
+  ].sort((a, b) => a.time - b.time);
+  $("gone").hidden = entries.length === 0;
+  const list = $("goneList");
+  const focusedKey = list.contains(document.activeElement) ? document.activeElement.dataset.key : null;
+  list.replaceChildren(...entries.map((e) => e.li));
+  if (focusedKey) list.querySelector(`[data-key="${CSS.escape(focusedKey)}"]`)?.focus({ preventScroll: true });
+}
+
+function onDepartureActivate(event) {
+  if (event.type === "keydown" && event.key !== "Enter" && event.key !== " ") return;
+  const li = event.target.closest(".departure[data-key]");
+  if (!li || li.classList.contains("is-leaving")) return;
+  if (event.type === "keydown") event.preventDefault();
+  if (data.selected) deselect();
+  else select(li.dataset.key);
+  saveData();
+  renderBoard();
 }
 
 // ---------- Rendering: controls ----------
@@ -781,6 +915,11 @@ $("maxTime").addEventListener("input", (event) => {
 });
 
 $("refresh").addEventListener("click", refresh);
+
+for (const list of [$("departures"), $("goneList")]) {
+  list.addEventListener("click", onDepartureActivate);
+  list.addEventListener("keydown", onDepartureActivate);
+}
 
 // The pull indicator uses the same symbol as the refresh button.
 $("pullIndicator").append($("refresh").querySelector("svg").cloneNode(true));

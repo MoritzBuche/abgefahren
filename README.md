@@ -61,6 +61,14 @@ label: green with 3 or more minutes to spare, yellow below 3, orange to leave no
 and red when the departure can no longer be reached. Stations without a walking
 time look as before.
 
+## Selected connection
+
+Tapping a departure highlights it. Only one can be selected: while one is, any tap
+on a departure only removes the highlight, so switching takes two taps. Once a
+selected departure is no longer in the list, because it has left or a filter hides
+it, it moves to "Past connections" below the list. It stays there for 5 minutes,
+also after its highlight is removed, and then disappears.
+
 ## Refresh rules
 
 - Automatic refresh on the first full minute at least 2 minutes after the last

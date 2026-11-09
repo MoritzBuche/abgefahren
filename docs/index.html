@@ -105,8 +105,12 @@
         </button>
       </div>
       <p id="notice" class="notice" role="status" hidden></p>
-      <ol id="departures" class="departures"></ol>
+      <ol id="departures" class="departures" role="listbox" data-i18n-aria="departures"></ol>
       <p id="empty" class="empty" hidden></p>
+      <section id="gone" class="gone" hidden>
+        <h3 id="goneLabel" class="label" data-i18n="goneTitle"></h3>
+        <ol id="goneList" class="departures" role="listbox" aria-labelledby="goneLabel"></ol>
+      </section>
     </section>
   </main>
 

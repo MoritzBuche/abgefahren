@@ -14,6 +14,7 @@
   --pin: #c9281e;
   --star: #b7791f;
   --flash: #cdeedd;
+  --selected: #e2f1e9;
   --reach-ok: #1f8a4c;
   --reach-soon: #e8b400;
   --reach-now: #f07d1a;
@@ -36,6 +37,7 @@
     --ok: #6fd6b1;
     --star: #ffc83d;
     --flash: #23584a;
+    --selected: #1d3a31;
     --shadow: 0 8px 24px rgb(0 0 0 / 0.45);
   }
 }
@@ -583,6 +585,21 @@ html { overscroll-behavior-y: contain; }
   padding: 10px 12px;
 }
 .departure + .departure, .more-rows { border-top: 1px solid var(--line); }
+.departure[data-key] { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.departure:focus-visible { outline-offset: -2px; }
+
+/* The selected connection: tinted, with a frame. The frame is an outline so it
+   can sit on top of the leave-time stripe. */
+.departure.is-selected {
+  z-index: 2;
+  background: var(--selected);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.gone { margin-top: 18px; }
+.gone .label { margin: 0 0 6px; }
+.departure.is-gone :is(.departure-line, .departure-main, .departure-when) { opacity: 0.65; }
 
 .departure-line { display: flex; align-items: center; gap: 5px; min-width: 0; }
 .line {
